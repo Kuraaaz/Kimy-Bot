@@ -21,17 +21,15 @@ module.exports = {
         .setColor('#00FF00')
         .setTimestamp();
 
-      // Ajouter chaque item à l'embed
-      items.forEach((item, index) => {
-        const itemDisplay = item.type === 'role' && item.roleId 
-          ? `<@&${item.roleId}>` // Mentionne le rôle si roleId existe
-          : item.name; // Affiche le nom de l'item
-
-        embed.addField(`${index + 1}. **${itemDisplay}**`, `Prix: **${item.price}** Kimyus`, false);
-
-        // Log pour vérifier si le rôle peut être mentionné
-        console.log(`Item: ${item.name}, Type: ${item.type}, Role ID: ${item.roleId}, Mention: ${itemDisplay}`);
-      });
+    items.forEach((item, index) => {
+        const role = message.guild.roles.cache.get(item.roleId);
+        const itemDisplay = item.type === 'role' && role 
+        ? `${role.name}`
+        : item.name;
+  
+        embed.addField(`${index + 1}. **${itemDisplay}**`, `Prix: **${item.price}** monnaie`, false);
+    });
+  
 
       await message.channel.send({ embeds: [embed] });
       logger.info('Shop list displayed successfully.');

@@ -16,7 +16,7 @@ module.exports = {
 
       const embed = new MessageEmbed()
         .setTitle(`${mentionedMember.user.username}'s Inventaire`)
-        .setColor('#3498db')
+        .setColor('#1809f3')
         .setTimestamp();
 
       if (userInventory && userInventory.items.length > 0) {

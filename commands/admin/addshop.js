@@ -10,16 +10,13 @@ module.exports = {
         return message.reply('Vous n\'avez pas la permission d\'exécuter cette commande.');
       }
 
-      if (args.length < 4) {
-        return message.reply('Veuillez fournir le nom, le prix, le type et la mention du rôle (ex: `+addshop <nom> <prix> <type> <@role>`).');
+      if (args.length < 3) {
+        return message.reply('Veuillez fournir le nom, le prix et le type de l\'item (ex: `+addshop <nom> <prix> <type> [<@role>]`).');
       }
 
-      const roleMentioned = message.mentions.roles.first();
-      if (!roleMentioned) {
-        return message.reply('Veuillez mentionner un rôle valide.');
-      }
-
-      const argsWithoutRole = args.filter(arg => arg !== `<@&${roleMentioned.id}>`);
+      // Extraire les arguments nécessaires
+      const possibleRole = message.mentions.roles.first();
+      const argsWithoutRole = possibleRole ? args.filter(arg => arg !== `<@&${possibleRole.id}>`) : args;
 
       const price = argsWithoutRole[argsWithoutRole.length - 2];
       const type = argsWithoutRole[argsWithoutRole.length - 1];
@@ -34,7 +31,7 @@ module.exports = {
         name: name,
         price: priceNumber,
         type: type,
-        roleId: roleMentioned.id
+        roleId: possibleRole ? possibleRole.id : null // Role optionnel, utilisé seulement si présent
       });
 
       await newItem.save();

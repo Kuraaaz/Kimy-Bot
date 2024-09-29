@@ -59,8 +59,8 @@ module.exports = {
       const xpGained = Math.floor(Math.random() * 11) + 5;
       userXP.xp += xpGained;
 
-      // Gagner de l'argent aléatoire entre 1 et 10 à chaque message
-      const moneyGained = Math.floor(Math.random() * 10) + 1;
+      // Gagner de l'argent aléatoire entre 5 et 50 à chaque message
+      const moneyGained = Math.floor(Math.random() * 50) + 5;
       userBank.balance += moneyGained;
 
       const currentLevel = userXP.level;
