@@ -1,5 +1,6 @@
 const { MessageEmbed } = require('discord.js');
 const logger = require('../utils/logger'); // Importer Logger
+require('dotenv').config(); // Charger les variables d'environnement
 
 module.exports = {
   name: 'rewardGiven',
@@ -12,8 +13,10 @@ module.exports = {
         .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
         .setTimestamp();
 
-      // Utiliser l'ID du salon spécifique pour envoyer le message
-      const channel = member.guild.channels.cache.get('1289691264270471311');
+      // Utiliser l'ID du salon spécifique depuis les variables d'environnement
+      const channelId = process.env.LEVEL_ID_CH;
+      const channel = member.guild.channels.cache.get(channelId);
+      
       if (channel) {
         await channel.send({ embeds: [embed] });
         logger.event(`Récompense donnée à ${member.user.username} pour le rôle ${role.name}`);

@@ -1,47 +1,59 @@
 const { MessageEmbed } = require('discord.js');
 const Inventory = require('../../models/inventory'); // Modèle d'inventaire
 const ShopItem = require('../../models/shop'); // Modèle du shop
-const UserMoney = require('../../models/money'); // Modèle d'argent
+const Bank = require('../../models/bank'); // Modèle de banque
 const logger = require('../../utils/logger'); // Logger
 
 module.exports = {
   name: 'shopbuy',
-  description: 'Acheter un item ou un rôle du shop.',
+  description: 'Acheter un item ou un rôle du shop par position.',
   async execute(message, args) {
     try {
-      const itemName = args.join(' ').trim(); // Récupérer le nom de l'item à acheter
-      if (!itemName) {
-        return message.reply('Veuillez spécifier le nom de l\'item que vous souhaitez acheter.');
+      const index = parseInt(args[0]); // Récupérer l'index de l'item à acheter
+      if (isNaN(index) || index < 1) {
+        return message.reply('Veuillez spécifier un numéro de position valide.');
       }
 
-      // Log pour vérifier quel nom d'item est reçu
-      console.log(`Nom de l'item cherché : ${itemName}`);
-
-      // Cherche l'item dans le shop
-      const item = await ShopItem.findOne({ name: itemName });
-      if (!item) {
-        return message.reply(`L'item **${itemName}** n'existe pas dans le shop.`);
+      // Récupérer tous les items du shop
+      const items = await ShopItem.find();
+      if (items.length === 0) {
+        return message.reply('Le shop est vide.');
       }
 
-      // Log pour vérifier si l'item est trouvé
+      // Vérifier si l'index est valide
+      if (index > items.length) {
+        return message.reply(`Il n'y a pas d'item à la position ${index}. Le shop contient ${items.length} items.`);
+      }
+
+      const item = items[index - 1]; // L'index est 0-based, donc on soustrait 1
       console.log(`Item trouvé : ${item.name}, Prix: ${item.price}`);
 
-      // Vérifier la quantité d'argent de l'utilisateur
-      const userMoneyData = await UserMoney.findOne({ userId: message.author.id });
-      if (!userMoneyData) {
-        return message.reply('Vous n\'avez pas d\'argent sur votre compte.');
+      // Vérifier la quantité d'argent de l'utilisateur dans la banque
+      let userBank = await Bank.findOne({ userId: message.author.id });
+
+      // Si l'utilisateur n'a pas encore de compte en banque, on le crée avec un solde de 0
+      if (!userBank) {
+        userBank = new Bank({
+          userId: message.author.id,
+          balance: 0 // Initialiser avec 0 monnaie
+        });
+        await userBank.save(); // Sauvegarder les données par défaut
       }
 
       // Log pour vérifier combien d'argent l'utilisateur possède
-      console.log(`Argent utilisateur : ${userMoneyData.amount}, Prix de l'item : ${item.price}`);
+      console.log(`Argent utilisateur : ${userBank.balance}, Prix de l'item : ${item.price}`);
 
-      if (userMoneyData.amount < item.price) {
-        return message.reply(`Vous n'avez pas assez d'argent pour acheter **${item.name}**. Il vous manque ${item.price - userMoneyData.amount}.`);
+      // Vérifier si l'utilisateur a assez d'argent
+      if (userBank.balance < item.price) {
+        return message.reply(`Vous n'avez pas assez d'argent pour acheter **${item.name}**. Il vous manque ${item.price - userBank.balance} monnaie.`);
       }
 
-      // Soustraire le prix de l'item
-      userMoneyData.amount -= item.price;
-      await userMoneyData.save();
+      // Soustraire le prix de l'item du solde de l'utilisateur
+      userBank.balance -= item.price;  // Correctement déduire l'argent
+      console.log(`Nouvel argent utilisateur : ${userBank.balance}`); // Log pour vérifier la mise à jour
+
+      // Sauvegarder les données de la banque mises à jour
+      await userBank.save();  // Sauvegarder après modification
 
       // Ajouter l'item ou le rôle à l'inventaire de l'utilisateur
       let userInventory = await Inventory.findOne({ userId: message.author.id });
@@ -65,6 +77,8 @@ module.exports = {
 
       // Ajouter l'item ou le rôle à l'inventaire
       userInventory.items.push({ name: item.name, type: item.type });
+
+      // Sauvegarder les modifications dans l'inventaire
       await userInventory.save();
 
       // Confirmation de l'achat

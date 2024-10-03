@@ -60,7 +60,7 @@ module.exports = {
       userXP.xp += xpGained;
 
       // Gagner de l'argent aléatoire entre 5 et 50 à chaque message
-      const moneyGained = Math.floor(Math.random() * 50) + 5;
+      const moneyGained = Math.floor(Math.random() * 30) + 5;
       userBank.balance += moneyGained;
 
       const currentLevel = userXP.level;
@@ -81,7 +81,8 @@ module.exports = {
           .setThumbnail(message.author.displayAvatarURL({ dynamic: true }));
 
         // Envoi dans le canal avec l'ID spécifique
-        const levelUpChannel = message.guild.channels.cache.get('1289691264270471311');
+        const channelId = process.env.LEVEL_ID_CH;
+        const levelUpChannel = message.guild.channels.cache.get(channelId);
         if (levelUpChannel) {
           await levelUpChannel.send({ embeds: [levelUpEmbed] });
         } else {

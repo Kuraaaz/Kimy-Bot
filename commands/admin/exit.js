@@ -9,11 +9,10 @@ module.exports = {
         return message.reply('Vous n\'avez pas la permission d\'exécuter cette commande.');
       }
   
+      await message.client.user.setStatus('invisible');
+
       // Répondre au message de commande
       await message.reply('Mise en arrêt du programme.');
-  
-      // Mettre le bot hors ligne
-      await message.client.user.setStatus('invisible');
   
       // Arrêter le bot
 
